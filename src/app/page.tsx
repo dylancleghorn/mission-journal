@@ -56,7 +56,7 @@ export default function Home() {
             <div className="plate-header"><span>Plate {String(page + 1).padStart(3, '0')}</span><span>MMIX–MMXI</span></div>
             <div className="entry-marker"><CalendarDays size={15} /> {entry.date}</div>
             <h2>{entry.title}</h2>
-            <div className="plate-text">{entry.body.split('\n\n').slice(0, 3).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
+            <div className="plate-text">{entry.body.split('\n\n').map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
             <div className="plate-bottom"><div>{entry.themes.slice(0, 3).map((theme) => <span key={theme}>{theme}</span>)}</div><small>{entry.wordCount} words</small></div>
           </div></div>
         </article>
@@ -73,4 +73,19 @@ export default function Home() {
   </main>;
 }
 
-export function TopNav() { return <header className="top-nav"><a className="nav-mark" href={sitePath('/')}><span>DC</span><b>MISSION<br />RECORD</b></a><nav><a href={sitePath('/')}>The Record</a><a href={sitePath('/journal')}>Journal</a><a href={sitePath('/highlights')}>Highlights</a><a href={sitePath('/quotes')}>Quotes</a><a href={sitePath('/index')}>Index</a><a href={sitePath('/about')}>About</a></nav><a className="nav-archive" href={sitePath('/journal')}><Search size={15} /> Explore archive</a></header>; }
+export function TopNav() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  return <header className="top-nav" onKeyDown={(event) => {
+    if (event.key === 'Escape') {
+      setMenuOpen(false);
+      document.getElementById('navigation-toggle')?.focus();
+    }
+  }}>
+    <a className="nav-mark" href={sitePath('/')}><span>DC</span><b>MISSION<br />RECORD</b></a>
+    <button id="navigation-toggle" className="nav-toggle" aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? 'Close' : 'Menu'}<span aria-hidden="true">{menuOpen ? '×' : '☰'}</span></button>
+    <nav id="main-navigation" aria-label="Main navigation" className={menuOpen ? 'is-open' : ''}>
+      <a href={sitePath('/')}>The Record</a><a href={sitePath('/journal')}>Journal</a><a href={sitePath('/highlights')}>Highlights</a><a href={sitePath('/quotes')}>Quotes</a><a href={sitePath('/index')}>Index</a><a href={sitePath('/about')}>About</a>
+    </nav>
+    <a className="nav-archive" href={sitePath('/journal')}><Search size={15} /> Explore archive</a>
+  </header>;
+}
