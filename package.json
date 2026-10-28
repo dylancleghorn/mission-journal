@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run check:translations && tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "curate": "node scripts/curate-journal.mjs"
+    "curate": "node scripts/curate-journal.mjs",
+    "check:translations": "node scripts/check-translations.mjs",
+    "translate:pt": "node scripts/translate-portuguese.mjs"
   },
   "engines": {
     "node": ">=22.13.0"
