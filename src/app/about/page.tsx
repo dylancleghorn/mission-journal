@@ -1,0 +1,4 @@
+import { BookOpen, CalendarDays, ScrollText } from 'lucide-react';
+import { TopNav } from '../page';
+import journal from '../journal.json';
+export default function AboutPage(){const words=journal.reduce((n,e)=>n+e.wordCount,0).toLocaleString();return <main className="subpage"><TopNav/><section className="sub-wrap about-page"><p className="sub-kicker">ABOUT THIS RECORD</p><h1>A modern mission,<br/>preserved one day at a time.</h1><p className="about-lede">This is the journal of Elder Dylan Cleghorn’s service in the Brazil Campinas Mission, from 2009 to 2011. The original transcription is preserved here in a format designed for reading, searching, and remembering.</p><div className="about-stats"><div><CalendarDays/><b>{journal.length}</b><span>dated entries</span></div><div><ScrollText/><b>{words}</b><span>words preserved</span></div><div><BookOpen/><b>3</b><span>years recorded</span></div></div></section></main>}
