@@ -1,10 +1,11 @@
 import { sitePath } from '../lib/site-path';
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Landmark, MapPin, Search, Users } from 'lucide-react';
 import { useJournal } from '../lib/use-journal';
 import { useLanguage } from '../lib/language';
+import { swipeStep } from '../lib/swipe';
 
 const initial = 0;
 const POSITION_KEY = 'mission-journal:plate';
@@ -14,6 +15,7 @@ export default function Home() {
   const { t } = useLanguage();
   const [page, setPage] = useState(initial);
   const [positionLoaded, setPositionLoaded] = useState(false);
+  const swipe = useRef<{ x: number; y: number; time: number; pointerId: number } | null>(null);
 
   useEffect(() => {
     const requested = Number(new URLSearchParams(window.location.search).get('plate'));
@@ -41,6 +43,25 @@ export default function Home() {
   const entry = journal[page];
   const advance = (amount: number) => setPage((current) => Math.min(Math.max(current + amount, 0), journal.length - 1));
 
+  function startSwipe(event: PointerEvent<HTMLElement>) {
+    swipe.current = null;
+    if (event.pointerType !== 'touch' || !event.isPrimary || !window.matchMedia('(max-width: 720px)').matches) return;
+    if (window.getSelection()?.isCollapsed === false) return;
+    swipe.current = { x: event.clientX, y: event.clientY, time: event.timeStamp, pointerId: event.pointerId };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+  function finishSwipe(event: PointerEvent<HTMLElement>) {
+    const start = swipe.current;
+    swipe.current = null;
+    if (!start || start.pointerId !== event.pointerId || !window.matchMedia('(max-width: 720px)').matches) return;
+    if (window.getSelection()?.isCollapsed === false) return;
+    const step = swipeStep(event.clientX - start.x, event.clientY - start.y, event.timeStamp - start.time);
+    if (!step || page + step < 0 || page + step >= journal.length) return;
+    advance(step);
+    const plate = event.currentTarget;
+    requestAnimationFrame(() => plate.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
+  }
+
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => { if (event.key === 'ArrowLeft') advance(-1); if (event.key === 'ArrowRight') advance(1); };
     window.addEventListener('keydown', keydown);
@@ -53,8 +74,9 @@ export default function Home() {
     <section className="record-stage">
       <div className="stage-orbit orbit-a" /><div className="stage-orbit orbit-b" />
       <div className="stage-intro"><p>{t('THE RECORD OF','O REGISTRO DE')}</p><h1>{t('Elder Dylan Cleghorn','Élder Dylan Cleghorn')}</h1><span>{t('Brazil Campinas Mission','Missão Brasil Campinas')} · 2009–2011</span></div>
+      <p className="swipe-hint">{t('Swipe left or right on the plate to change records.','Deslize para os lados na placa para mudar de registro.')}</p>
       <div className="plate-frame">
-        <article className="gold-plate" aria-label={t(`Journal entry ${page + 1} of ${journal.length}`, `Registro ${page + 1} de ${journal.length}`)}>
+        <article className="gold-plate" onPointerDown={startSwipe} onPointerUp={finishSwipe} onPointerCancel={() => { swipe.current = null; }} aria-label={t(`Journal entry ${page + 1} of ${journal.length}`, `Registro ${page + 1} de ${journal.length}`)}>
           <div className="plate-rim"><div className="plate-content">
             <div className="plate-header"><span>{t('Plate','Placa')} {String(page + 1).padStart(3, '0')}</span><span>MMIX–MMXI</span></div>
             <div className="entry-marker"><CalendarDays size={15} /> {entry.date}</div>

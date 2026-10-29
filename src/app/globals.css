@@ -908,3 +908,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .plate-text { background: none; font-size: 17px; line-height: 1.75; }
 .plate-text p { line-height: 1.75; margin-bottom: 1em; }
 .plate-content h2 { line-height: 1.25; }
+
+.swipe-hint { display: none; }
+@media (max-width: 720px) {
+  .gold-plate { touch-action: pan-y pinch-zoom; scroll-margin-top: 16px; }
+  .swipe-hint { display: block; color: #c4a66a; font-size: 13px; line-height: 1.5; text-align: center; margin: -8px 0 20px; position: relative; z-index: 1; }
+}
