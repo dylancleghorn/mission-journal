@@ -935,3 +935,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .plate-turn:disabled { opacity: .3; }
   .plate-turn:active:not(:disabled) { transform: scale(.94); }
 }
+
+/* Slide only the contents; the page and outer frame never become scroll targets. */
+@media (max-width: 720px) {
+  .record-stage { overflow: clip; overflow-anchor: none; }
+  .gold-plate { overflow: clip; }
+}

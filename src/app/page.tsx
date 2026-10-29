@@ -1,7 +1,7 @@
 import { sitePath } from '../lib/site-path';
 'use client';
 
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Landmark, MapPin, Search, Users } from 'lucide-react';
 import { useJournal } from '../lib/use-journal';
 import { useLanguage } from '../lib/language';
@@ -17,6 +17,7 @@ export default function Home() {
   const [positionLoaded, setPositionLoaded] = useState(false);
   const swipe = useRef<{ x: number; y: number; time: number; pointerId: number } | null>(null);
   const plateRef = useRef<HTMLElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const previousPlate = useRef<number | null>(null);
 
   useEffect(() => {
@@ -45,13 +46,21 @@ export default function Home() {
   const entry = journal[page];
   const advance = (amount: number) => setPage((current) => Math.min(Math.max(current + amount, 0), journal.length - 1));
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!positionLoaded) return;
     const previous = previousPlate.current;
     previousPlate.current = page;
-    if (previous === null || previous === page || !window.matchMedia('(max-width: 720px)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const animation = plateRef.current?.animate([
-      { transform: `translateX(${page > previous ? 56 : -56}px)`, opacity: 0.25 },
+    if (previous === null || previous === page || !window.matchMedia('(max-width: 720px)').matches) return;
+    // Measure the stationary frame, never an element mid-transition. Only move
+    // vertically, and retain the header when the reader is already near the top.
+    const frame = frameRef.current;
+    if (frame) {
+      const top = Math.max(0, frame.getBoundingClientRect().top + window.scrollY - 16);
+      window.scrollTo({ left: 0, top: Math.min(window.scrollY, top), behavior: 'instant' });
+    }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const animation = plateRef.current?.querySelector('.plate-rim')?.animate([
+      { transform: `translateX(${page > previous ? 32 : -32}px)`, opacity: 0.25 },
       { transform: 'translateX(0)', opacity: 1 },
     ], { duration: 280, easing: 'cubic-bezier(.2,.8,.2,1)' });
     return () => animation?.cancel();
@@ -72,8 +81,6 @@ export default function Home() {
     const step = swipeStep(event.clientX - start.x, event.clientY - start.y, event.timeStamp - start.time);
     if (!step || page + step < 0 || page + step >= journal.length) return;
     advance(step);
-    const plate = event.currentTarget;
-    requestAnimationFrame(() => plate.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
   }
 
   useEffect(() => {
@@ -89,7 +96,7 @@ export default function Home() {
       <div className="stage-orbit orbit-a" /><div className="stage-orbit orbit-b" />
       <div className="stage-intro"><p>{t('THE RECORD OF','O REGISTRO DE')}</p><h1>{t('Elder Dylan Cleghorn','Élder Dylan Cleghorn')}</h1><span>{t('Brazil Campinas Mission','Missão Brasil Campinas')} · 2009–2011</span></div>
       <p className="swipe-hint">{t('Swipe left or right on the plate to change records.','Deslize para os lados na placa para mudar de registro.')}</p>
-      <div className="plate-frame">
+      <div ref={frameRef} className="plate-frame">
         <article ref={plateRef} className="gold-plate" onPointerDown={startSwipe} onPointerUp={finishSwipe} onPointerCancel={() => { swipe.current = null; }} aria-label={t(`Journal entry ${page + 1} of ${journal.length}`, `Registro ${page + 1} de ${journal.length}`)}>
           <div className="plate-rim"><div className="plate-content">
             <div className="plate-header"><span>{t('Plate','Placa')} {String(page + 1).padStart(3, '0')}</span><span>MMIX–MMXI</span></div>
