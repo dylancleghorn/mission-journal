@@ -16,6 +16,8 @@ export default function Home() {
   const [page, setPage] = useState(initial);
   const [positionLoaded, setPositionLoaded] = useState(false);
   const swipe = useRef<{ x: number; y: number; time: number; pointerId: number } | null>(null);
+  const plateRef = useRef<HTMLElement>(null);
+  const previousPlate = useRef<number | null>(null);
 
   useEffect(() => {
     const requested = Number(new URLSearchParams(window.location.search).get('plate'));
@@ -42,6 +44,18 @@ export default function Home() {
   }, [page, positionLoaded]);
   const entry = journal[page];
   const advance = (amount: number) => setPage((current) => Math.min(Math.max(current + amount, 0), journal.length - 1));
+
+  useEffect(() => {
+    if (!positionLoaded) return;
+    const previous = previousPlate.current;
+    previousPlate.current = page;
+    if (previous === null || previous === page || !window.matchMedia('(max-width: 720px)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const animation = plateRef.current?.animate([
+      { transform: `translateX(${page > previous ? 56 : -56}px)`, opacity: 0.25 },
+      { transform: 'translateX(0)', opacity: 1 },
+    ], { duration: 280, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    return () => animation?.cancel();
+  }, [page, positionLoaded]);
 
   function startSwipe(event: PointerEvent<HTMLElement>) {
     swipe.current = null;
@@ -76,7 +90,7 @@ export default function Home() {
       <div className="stage-intro"><p>{t('THE RECORD OF','O REGISTRO DE')}</p><h1>{t('Elder Dylan Cleghorn','Élder Dylan Cleghorn')}</h1><span>{t('Brazil Campinas Mission','Missão Brasil Campinas')} · 2009–2011</span></div>
       <p className="swipe-hint">{t('Swipe left or right on the plate to change records.','Deslize para os lados na placa para mudar de registro.')}</p>
       <div className="plate-frame">
-        <article className="gold-plate" onPointerDown={startSwipe} onPointerUp={finishSwipe} onPointerCancel={() => { swipe.current = null; }} aria-label={t(`Journal entry ${page + 1} of ${journal.length}`, `Registro ${page + 1} de ${journal.length}`)}>
+        <article ref={plateRef} className="gold-plate" onPointerDown={startSwipe} onPointerUp={finishSwipe} onPointerCancel={() => { swipe.current = null; }} aria-label={t(`Journal entry ${page + 1} of ${journal.length}`, `Registro ${page + 1} de ${journal.length}`)}>
           <div className="plate-rim"><div className="plate-content">
             <div className="plate-header"><span>{t('Plate','Placa')} {String(page + 1).padStart(3, '0')}</span><span>MMIX–MMXI</span></div>
             <div className="entry-marker"><CalendarDays size={15} /> {entry.date}</div>
