@@ -894,19 +894,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 @media (max-width: 360px) { .nav-mark b { display: none; } }
 
-/* Use book typography for comfortable reading on small screens. */
-@media (max-width: 720px) {
-  .plate-header,
-  .entry-marker,
-  .plate-content h2,
-  .plate-text,
-  .plate-bottom,
-  .quote-grid p {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-style: normal;
-    letter-spacing: normal;
-  }
-  .plate-text { background: none; font-size: 17px; line-height: 1.75; }
-  .plate-text p { line-height: 1.75; margin-bottom: 1em; }
-  .plate-content h2 { line-height: 1.25; }
+/* Consistent book typography at every screen size. */
+.plate-header,
+.entry-marker,
+.plate-content h2,
+.plate-text,
+.plate-bottom,
+.quote-grid p {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: normal;
+  letter-spacing: normal;
 }
+.plate-text { background: none; font-size: 17px; line-height: 1.75; }
+.plate-text p { line-height: 1.75; margin-bottom: 1em; }
+.plate-content h2 { line-height: 1.25; }
